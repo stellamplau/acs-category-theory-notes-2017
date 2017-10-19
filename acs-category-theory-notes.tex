@@ -21,6 +21,7 @@
 \usepackage[charter]{mathdesign} % displays nicely on computer monitors
 \usepackage{framed}
 \usepackage{tikz}
+\usetikzlibrary{fit, positioning, shapes, calc}
 \usepackage{tikz-cd}
 \usepackage{microtype}
 
@@ -58,6 +59,9 @@
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
 \newtheorem{exercise}{Exercise}
+
+\newtheorem*{remark}{Remark}
+\newtheorem*{example}{Example}
 
 %%%% Stylistic
 \setlength\parindent{0pt}
@@ -111,7 +115,8 @@
 \newcommand{\id}[1]{ \mathrm{id}_{ #1 } }
 \newcommand{\idfunc}{ \mathrm{Id} }
 \newcommand{\nats}{\mathbb{N}}
-\newcommand{\morpharr}[1]{\overset{#1}{\longrightarrow}}
+\newcommand{\morpharrow}{\longrightarrow}
+\newcommand{\morpharr}[1]{\overset{#1}{\morpharrow}}
 
 \begin{document}
 
@@ -130,7 +135,9 @@ Andrej Ivašković\\
 Oliver Richardson\\
 Razvan Kusztos\\
 Sebastian Borgeaud\\
-Brad Hardy
+Brad Hardy\\
+Dima Szamozvancev\\
+Stella Lau
 \end{multicols}
 \clearpage
 
@@ -1643,5 +1650,201 @@ respective objects.
   some of the categories there will be no solution.) In particular, have a look
   at $\catmon$, $\catpreo$, $\catpred$, and $\catrel$.
 \end{exercise}
+
+\chapter{Morphisms}
+\lecturedetails{19 October 2017}{M Fiore, D Szamozvancev, S Lau}
+
+\section{Isomorphisms}
+\begin{definition}[Isomorphism]
+An arrow $f : A \morpharrow B$ is an \emph{isomorphism} if there exists an
+inverse arrow $g : B \morpharrow A$ such that
+\[
+    g \comp f = \id{A} \quad \text{ and } \quad f \comp g = \id{B}
+\]
+We say $A$ and $B$ are \emph{isomorphic} if there exists an isomorphism between
+them.
+\end{definition}
+
+\begin{remark}
+If $f$ has an inverse $g$, then the inverse is unique and we write $g = f^{-1}$.
+\end{remark}
+
+\begin{proof}
+Suppose $h$ is also an inverse, so we have
+$h \comp f = \id{A}$ and $f \comp h = \id{B}$.
+Then
+\begin{alignat*}{4}
+    h \comp (f \comp g) &= h \comp \id{B} &&= h \quad \text{and} \\
+    (h \comp f) \comp g &= \id{A} \comp g &&= g.
+\end{alignat*}
+By associativity, $g = h$.
+\end{proof}
+
+\begin{example}
+In $\catset$, $f$ is an isomorphism iff it is a bijection, where
+\[
+    f : A \rightarrow B \text{ is a bijection } \iff
+    \forall b \in B.\ \exists ! a \in A.\ f(a) = b.
+\]
+
+A bijection is an \emph{injection} and a \emph{surjection}.
+
+\begin{minipage}[t]{0.50\textwidth}
+    \begin{center}
+    Injection\\
+    $\forall a, a' \in A.\ f(a) = f(a') \Rightarrow a = a'$
+
+    \begin{tikzpicture}
+        [
+            group/.style={ellipse, draw, minimum height=50pt,
+                          minimum width=30pt, label=above:#1},
+            dot/.style={circle, fill, minimum width=2.5pt, inner sep=0pt}
+        ]
+        \node (a) [dot] {};
+        \node (b) [dot, below=of a] {};
+        \node (p) [dot, right=50pt of a] {};
+        \node (q) [dot, below=of p] {};
+        \node (r) [dot, right=10pt of p] {};
+        \node (s) [dot, below=of r] {};
+        \node (t) [dot] at ($(r)!1/2!(s)$) {};
+        \foreach \i/\j in {a/p,b/q}
+            \draw [->, >=stealth,scale=3] (\i) -- (\j);
+        \node [fit=(a) (b), group=A] {};
+        \node [fit=(p) (q) (r) (s) (t), group=B] {};
+    \end{tikzpicture}
+    \end{center}
+\end{minipage}%
+\begin{minipage}[t]{0.50\textwidth}
+    \begin{center}
+    Surjection\\
+    $\forall b \in B.\ \exists a \in A.\ f(a) = b$
+
+    \vspace{15pt}
+    \begin{tikzpicture}
+        [
+            group/.style={ellipse, draw, minimum height=20pt,
+                          minimum width=50pt, label=left:#1},
+            dot/.style={circle, fill, minimum width=2.5pt, inner sep=0pt}
+        ]
+        \node (a) [dot] {};
+        \node (b) [dot, right=10pt of a] {};
+        \node (c) [dot, right=10pt of b] {};
+        \node (d) [dot, right=10pt of c] {};
+        \node (e) [dot, right=10pt of d] {};
+        \node (p) [dot, below=of b] {};
+        \node (q) [dot, below=of d] {};
+        \foreach \i/\j in {a/p,b/p,d/q}
+            \draw [->, >=stealth,scale=3] (\i) -- (\j);
+        \node [fit=(a) (b) (c) (d) (e), group=A] {};
+        \node [fit=(p) (q), group=B] {};
+    \end{tikzpicture}
+    \end{center}
+\end{minipage}%
+\end{example}
+
+\section{Sections and retractions}
+
+\begin{definition}[Sections and retractions]
+A \emph{section} $s : A \morpharrow B$ is an arrow for which there exists an
+arrow $r : B \morpharrow A$ (retraction) such that
+\[
+    r \comp s = \id{A}
+\]
+In other words, a section is the right inverse of some morphism.
+Dually, a \emph{retraction} is the left inverse of some morphism.
+\end{definition}
+
+\begin{example}
+Consider the category of sets, $\catset$.
+
+\begin{center}
+    \begin{tikzpicture}
+        [
+            group/.style={ellipse, draw, minimum height=50pt,
+                          minimum width=30pt, label=above:#1},
+            dot/.style={circle, fill, minimum width=2.5pt, inner sep=0pt}
+        ]
+        \node (a) [dot] {};
+        \node (b) [dot, below=10pt of a] {};
+        \node (p) [dot, xshift=75pt] at ($(a)!1/2!(b)$) {};
+        \foreach \i/\j in {a/p,b/p}
+            \draw [->, >=stealth,scale=3] (\i) -- (\j);
+        \node (A) [fit=(a) (b), group=A] {};
+        \node (B) [fit=(p), group=B] {};
+        \draw [->] (A) to [bend left] node[above] {$s$} (B);
+    \end{tikzpicture}
+\end{center}
+
+The above map $s : A \morpharrow B$ can not be a section, as there is no way to
+``go back to two points``.
+Hence, a section in $\catset$ must at least be an injection.
+However, note that if $A$ is the empty set, $s$ can not be a section.
+
+So in $\catset$, $A \morpharr {s} B$ is a section iff $A \neq \emptyset$ and
+$s$ is injective.
+
+A map $r : B \rightarrow A$ is a retraction iff it has a section.
+In $\catset$, retractions are the same as surjections (expressed
+diagrammatically below).
+
+\begin{center}
+    \begin{tikzpicture}
+        [
+            group/.style={ellipse, draw, minimum height=75pt,
+                          minimum width=30pt, label=above:#1},
+            dot/.style={circle, fill, minimum width=2.5pt, inner sep=0pt}
+        ]
+        \node (a) [dot] {};
+        \node (b) [dot, below=10pt of a] {};
+        \node (c) [dot, below=10pt of b] {};
+        \node (p) [dot, right=75pt of a] {};
+        \node (q) [dot, right=75pt of c] {};
+        \foreach \i/\j in {a/p,b/q, c/q}
+            \draw [->, >=stealth,scale=3] (\i) -- (\j);
+        \node (B) [fit=(a) (b) (c), group=B] {};
+        \node (A) [fit=(p) (q), group=A] {};
+        \draw [->] ([yshift=25pt]B.east) to [bend left] node[above] {$r$}
+                   ([yshift=25pt]A.west);
+        \draw [->] ([yshift=-25pt]A.west) to [bend left] node[below]
+                   {$\exists s$} ([yshift=-25pt]B.east);
+    \end{tikzpicture}
+\end{center}
+
+\end{example}
+
+\subsection{Axiom of choice}
+\begin{center}
+    \begin{tikzpicture}
+        [
+            group/.style={ellipse, draw, minimum height=20pt,
+                          minimum width=10pt, label=left:#1},
+            dot/.style={circle, fill, minimum width=2.5pt, inner sep=0pt}
+        ]
+        \foreach \i [count = \xi] in {x,y,z}{
+            \node (\i1) [dot] at (\xi, 0) {};
+            \node (\i2) [dot,below=2pt of \i1] {};
+            \node (\i3) [dot,below=2pt of \i2] {};
+            \node (g-\i) [fit=(\i1) (\i2) (\i3), group] {};
+            \node (a-\i) [dot] at (\xi, -3) {};
+            \draw [->] (g-\i) to [bend left=10] (a-\i);
+            \draw [->] (a-\i) to [bend left=10] (g-\i);
+        }
+        \node (A) [fit=(a-x) (a-y) (a-z), group=A] {};
+        \node (B) [fit=(g-x) (g-y) (g-z), group=B] {};
+        \draw [->] (-1.5,-2.5) to node[left] {$s$} (-1.5,-0.75);
+        \draw [->] (-1.0,-0.75) to node[right] {$r$} (-1.0,-2.5);
+    \end{tikzpicture}
+\end{center}
+
+There is a section on $A$ if $\forall a \in A$, we can find a $b \in B$ such
+that $r(b) = a$.
+In other words, $\forall a \in A,\ s(a)$ is defined by choosing
+a $b \in B$ such that $r(b) = a$.
+This may require the \emph{axiom of choice}.
+
+\begin{definition}
+A category $\mathcal{C}$ \emph{satisfies the axiom of choice} whenever every
+``surjection'' in $\mathcal{C}$ has a retraction.
+\end{definition}
 
 \end{document}
